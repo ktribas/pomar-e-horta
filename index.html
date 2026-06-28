@@ -57,7 +57,32 @@
   .moonkey .mk{background:var(--moon-soft);border-radius:10px;padding:11px 13px;font-size:.84rem;color:#3f3853}
   .moonkey .mk b{color:var(--moon)}
   .principles{columns:2;column-gap:18px;padding-left:18px}
-  @media(max-width:640px){.principles{columns:1}.count{width:100%;margin:4px 0 0}}
+  @media(max-width:640px){
+    header h1{font-size:1.2rem}
+    .principles{columns:1}
+    .count{width:100%;margin:4px 0 0}
+    .controls{gap:6px}
+    .controls input[type=search]{flex:1 1 100%}
+    .controls select{flex:1 1 46%;min-width:0}
+    .grid{grid-template-columns:1fr}
+    .tablewrap{max-height:none;overflow:visible;border:none;background:transparent;box-shadow:none}
+    table{font-size:.92rem}
+    thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    tbody tr{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;
+      margin-bottom:10px;padding:2px 2px 6px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+    tbody td{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+      border:none;padding:5px 13px;text-align:right}
+    tbody td::before{content:attr(data-label);font-weight:600;color:var(--muted);text-align:left;
+      flex:0 0 40%;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px}
+    tbody td:first-child{display:block;text-align:left;font-size:1.05rem;padding:10px 13px 5px;
+      border-bottom:1px solid var(--line);margin-bottom:3px}
+    tbody td:first-child::before{content:none}
+    tbody td .pill{white-space:normal;text-align:right}
+    tbody tr:hover td{background:transparent}
+    .row-now td{background:transparent!important;box-shadow:none!important}
+    tbody tr.row-now{border:2px solid var(--now-bd);background:var(--now)}
+    tbody tr.row-now td:first-child{border-bottom-color:var(--now-bd)}
+  }
   .principles li{margin:0 0 7px;font-size:.84rem;break-inside:avoid}
   .sub{font-size:.76rem;color:var(--muted);margin:18px 0 6px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
   .legend{font-size:.77rem;color:var(--muted);margin-top:10px}
@@ -191,9 +216,9 @@ function renderPoda(){
   });
   rows.sort((a,b)=>podaSort.k==="mes"?(a.mes-b.mes)*podaSort.dir:String(a[podaSort.k]).localeCompare(String(b[podaSort.k]),"pt")*podaSort.dir);
   $("#podaTable tbody").innerHTML=rows.map(r=>`<tr class="${r.mes===NOW_MONTH?'row-now':''}">
-    <td><b>${esc(r.especie)}</b></td><td>${esc(r.grupo)}</td><td>${esc(r.tipo)}</td>
-    <td>${esc(r.epoca)}</td><td>${MESES[r.mes]||""}</td>
-    <td><span class="pill moonpill">🌙 ${esc(r.lua)}</span></td><td>${esc(r.obs)}</td></tr>`).join("")
+    <td data-label="Espécie"><b>${esc(r.especie)}</b></td><td data-label="Grupo de manejo">${esc(r.grupo)}</td><td data-label="Tipo de poda">${esc(r.tipo)}</td>
+    <td data-label="Melhor época">${esc(r.epoca)}</td><td data-label="Mês">${MESES[r.mes]||""}</td>
+    <td data-label="Melhor semana (Lua)"><span class="pill moonpill">🌙 ${esc(r.lua)}</span></td><td data-label="Observações">${esc(r.obs)}</td></tr>`).join("")
     ||`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Nenhum resultado.</td></tr>`;
   $("#podaCount").textContent=rows.length+" de "+PODA.length+" espécies";
 }
@@ -209,8 +234,8 @@ function renderPlant(){
     return true;
   });
   rows.sort((a,b)=>String(a[plantSort.k]).localeCompare(String(b[plantSort.k]),"pt")*plantSort.dir);
-  $("#plantTable tbody").innerHTML=rows.map(r=>`<tr><td><b>${esc(r.especie)}</b></td><td>${esc(CATLABEL[r.categoria]||r.categoria)}</td>
-    <td>${esc(r.epoca)}</td><td>${esc(r.estacao)}</td><td>${esc(r.sol)}</td></tr>`).join("")
+  $("#plantTable tbody").innerHTML=rows.map(r=>`<tr><td data-label="Espécie"><b>${esc(r.especie)}</b></td><td data-label="Categoria">${esc(CATLABEL[r.categoria]||r.categoria)}</td>
+    <td data-label="Melhor época de plantio">${esc(r.epoca)}</td><td data-label="Estação principal">${esc(r.estacao)}</td><td data-label="Exigência de sol">${esc(r.sol)}</td></tr>`).join("")
     ||`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Nenhum resultado.</td></tr>`;
   $("#plantCount").textContent=rows.length+" de "+PLANT.length+" espécies";
 }
