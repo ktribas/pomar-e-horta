@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manejo da Horta e Pomar</title>
+<style>
+  :root{
+    color-scheme:light;
+    --bg:#f4f1e8; --card:#ffffff; --ink:#2d3a24; --muted:#6b7a5e;
+    --green:#4a7c3f; --green-d:#35602c; --leaf:#e8f0e0; --accent:#c97b3c;
+    --line:#dfd9c8; --moon:#5a5170; --moon-soft:#ece8f3;
+    --now:#fff4d6; --now-bd:#e0b84a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.45;-webkit-font-smoothing:antialiased}
+  header{background:linear-gradient(135deg,var(--green-d),var(--green));color:#fff;padding:18px 18px 14px}
+  header h1{margin:0;font-size:1.35rem;font-weight:700}
+  header p{margin:4px 0 0;opacity:.92;font-size:.85rem}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 14px 50px}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .tab{border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:8px 13px;border-radius:999px;cursor:pointer;font-size:.88rem;font-weight:600;transition:.15s}
+  .tab:hover{border-color:var(--green)}
+  .tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+  .panel{display:none}.panel.active{display:block}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+  .controls input[type=search]{flex:1;min-width:170px;padding:9px 12px;border:1px solid var(--line);
+    border-radius:8px;font-size:.9rem;background:var(--card);color:var(--ink)}
+  .controls select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);font-size:.85rem;color:var(--ink)}
+  .count{font-size:.78rem;color:var(--muted);margin-left:auto}
+  .tablewrap{max-height:68vh;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:.85rem}
+  thead th{background:var(--leaf);color:var(--green-d);text-align:left;padding:10px 12px;font-weight:700;
+    position:sticky;top:0;z-index:5;cursor:pointer;user-select:none;white-space:nowrap;
+    box-shadow:inset 0 -1px 0 var(--line)}
+  th .arr{opacity:.4;font-size:.7rem}
+  td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:top}
+  tbody tr:hover td{background:#faf9f3}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.74rem;font-weight:600;white-space:nowrap}
+  .moonpill{background:var(--moon-soft);color:var(--moon)}
+  .row-now td{background:var(--now)!important;box-shadow:inset 3px 0 0 var(--now-bd)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:14px}
+  .mcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .mcard.now{border:2px solid var(--now-bd);box-shadow:0 2px 10px rgba(224,184,74,.3)}
+  .mcard h3{margin:0 0 2px;font-size:1.02rem;color:var(--green-d);display:flex;justify-content:space-between;align-items:center}
+  .mcard .obj{font-weight:600;color:var(--accent);font-size:.84rem;margin-bottom:8px}
+  .mcard dl{margin:0;font-size:.82rem}
+  .mcard dt{color:var(--muted);font-weight:600;margin-top:7px;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px}
+  .mcard dd{margin:1px 0 0}
+  .badge-now{background:var(--now-bd);color:#4a3a00;font-size:.64rem;padding:2px 7px;border-radius:999px;font-weight:700}
+  .note{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 15px;margin-bottom:10px}
+  .note h4{margin:0 0 5px;color:var(--green-d);font-size:.92rem}
+  .note p{margin:0;font-size:.86rem}
+  .moonkey{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:8px}
+  .moonkey .mk{background:var(--moon-soft);border-radius:10px;padding:11px 13px;font-size:.84rem;color:#3f3853}
+  .moonkey .mk b{color:var(--moon)}
+  .principles{columns:2;column-gap:18px;padding-left:18px}
+  @media(max-width:640px){.principles{columns:1}.count{width:100%;margin:4px 0 0}}
+  .principles li{margin:0 0 7px;font-size:.84rem;break-inside:avoid}
+  .sub{font-size:.76rem;color:var(--muted);margin:18px 0 6px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .legend{font-size:.77rem;color:var(--muted);margin-top:10px}
+  .status{padding:40px 16px;text-align:center;color:var(--muted);font-size:.92rem}
+  .status .spin{display:inline-block;width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:rot .8s linear infinite;margin-bottom:10px}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  .errbox{background:#fff;border:1px solid #e3c0c0;border-radius:10px;padding:16px;color:#8a3b3b;font-size:.86rem;margin-top:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌿 Manejo da Horta e Pomar</h1>
+  <p>Juquitiba/SP · versão para publicar (dados de 28/06/2026) · <span id="todayLabel"></span></p>
+</header>
+
+<div class="wrap">
+  <div id="app">
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="poda">✂️ Poda &amp; Lua</button>
+      <button class="tab" data-tab="adubacao">🌱 Adubação mensal</button>
+      <button class="tab" data-tab="manejo">📖 Manejo do pomar</button>
+      <button class="tab" data-tab="plantio">🥬 Calendário de plantio</button>
+    </div>
+
+    <section class="panel active" id="poda">
+      <div class="controls">
+        <input type="search" id="podaSearch" placeholder="Buscar espécie, época, observação…">
+        <select id="podaMes"></select>
+        <select id="podaGrupo"></select>
+        <select id="podaTipo"></select>
+        <span class="count" id="podaCount"></span>
+      </div>
+      <div class="tablewrap">
+        <table id="podaTable">
+          <thead><tr>
+            <th data-k="especie">Espécie <span class="arr">↕</span></th>
+            <th data-k="grupo">Grupo de manejo <span class="arr">↕</span></th>
+            <th data-k="tipo">Tipo de poda <span class="arr">↕</span></th>
+            <th data-k="epoca">Melhor época <span class="arr">↕</span></th>
+            <th data-k="mes">Mês <span class="arr">↕</span></th>
+            <th data-k="lua">Melhor semana (Lua) <span class="arr">↕</span></th>
+            <th data-k="obs">Observações</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="legend">Linha destacada = poda recomendada para o mês atual. Toque nos cabeçalhos para ordenar.</p>
+    </section>
+
+    <section class="panel" id="adubacao">
+      <p class="legend" style="margin-top:14px">Adubação mês a mês. O mês atual aparece destacado.</p>
+      <div class="grid" id="adubaGrid"></div>
+    </section>
+
+    <section class="panel" id="manejo">
+      <div class="sub">Notas técnicas por grupo</div>
+      <div id="gruposBox"></div>
+      <div class="sub">Critério lunar adotado</div>
+      <div class="moonkey" id="moonKey"></div>
+      <div class="sub">Princípios de manejo comum das frutíferas</div>
+      <ul class="principles" id="principlesBox"></ul>
+    </section>
+
+    <section class="panel" id="plantio">
+      <div class="controls">
+        <input type="search" id="plantSearch" placeholder="Buscar espécie…">
+        <select id="plantGrupo">
+          <option value="">Todas as categorias</option>
+          <option value="folhosas">Folhosas / PANC</option>
+          <option value="frutos">Frutos &amp; raízes</option>
+          <option value="ervas">Ervas &amp; temperos</option>
+        </select>
+        <select id="plantEstacao"></select>
+        <select id="plantSol"></select>
+        <span class="count" id="plantCount"></span>
+      </div>
+      <div class="tablewrap">
+        <table id="plantTable">
+          <thead><tr>
+            <th data-k="especie">Espécie <span class="arr">↕</span></th>
+            <th data-k="categoria">Categoria <span class="arr">↕</span></th>
+            <th data-k="epoca">Melhor época de plantio <span class="arr">↕</span></th>
+            <th data-k="estacao">Estação principal <span class="arr">↕</span></th>
+            <th data-k="sol">Exigência de sol <span class="arr">↕</span></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  
+</div>
+
+<script>
+
+const FILE_ID="1rDOdGNb8XIBFb8GUhpJt7g0KW80jh9cR6fTRwnJTu7g";
+const READ_TOOL="mcp__87ad9c40-13b3-42e4-ae54-8f4c97f234ec__read_file_content";
+const MESES=["","Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const MESES_FULL=["","Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const CATLABEL={folhosas:"Folhosas / PANC",frutos:"Frutos & raízes",ervas:"Ervas & temperos"};
+const NOW_MONTH=new Date().getMonth()+1;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const uniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>String(x).localeCompare(y,"pt"));
+function fillSelect(sel,vals,allLabel){sel.innerHTML=`<option value="">${allLabel}</option>`+vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");}
+
+const PODA=[{"especie":"Lichia","grupo":"Tropicais lenhosas","tipo":"Pós-colheita","epoca":"Fevereiro – Março","obs":"Poda somente após colher","lua":"Lua minguante pós-colheita","mes":2},{"especie":"Longana","grupo":"Tropicais lenhosas","tipo":"Pós-colheita","epoca":"Fevereiro – Março","obs":"Manejo similar à lichia","lua":"Lua minguante pós-colheita","mes":2},{"especie":"Uva rosada de mesa","grupo":"Trepadeiras","tipo":"Produção","epoca":"Junho","obs":"Poda define produtividade","lua":"2ª semana de junho – Lua minguante","mes":6},{"especie":"Mirtilo","grupo":"Arbustos","tipo":"Frutificação","epoca":"Junho","obs":"Exige solo ácido e drenado","lua":"2ª semana de junho – Lua minguante","mes":6},{"especie":"Figo","grupo":"Rústicas","tipo":"Frutificação","epoca":"Junho","obs":"Responde muito bem à poda","lua":"2ª semana de junho – Lua minguante","mes":6},{"especie":"Pêssego","grupo":"Rosáceas","tipo":"Frutificação","epoca":"Junho – Julho","obs":"Poda anual obrigatória; abrir copa","lua":"2ª semana de julho – Lua minguante","mes":7},{"especie":"Nectarina","grupo":"Rosáceas","tipo":"Frutificação","epoca":"Junho – Julho","obs":"Abrir copa; sensível à umidade","lua":"2ª semana de julho – Lua minguante","mes":7},{"especie":"Ameixeira","grupo":"Rosáceas","tipo":"Frutificação","epoca":"Junho – Julho","obs":"Alta sensibilidade a fungos","lua":"2ª semana de julho – Lua minguante","mes":7},{"especie":"Macieira","grupo":"Rosáceas","tipo":"Frutificação","epoca":"Junho – Julho","obs":"Exige insolação e poda precisa","lua":"2ª semana de julho – Lua minguante","mes":7},{"especie":"Marmelo","grupo":"Rosáceas","tipo":"Formação","epoca":"Junho – Julho","obs":"Condução inicial define arquitetura","lua":"2ª semana de julho – Lua minguante","mes":7},{"especie":"Amora","grupo":"Trepadeiras","tipo":"Produção","epoca":"Junho – Julho","obs":"Frutifica em ramos novos","lua":"2ª semana de julho – Lua minguante","mes":7},{"especie":"Caqui","grupo":"Tropicais","tipo":"Formação","epoca":"Julho","obs":"Produz em ramos do ano","lua":"2ª semana de julho – Lua minguante","mes":7},{"especie":"Castanha portuguesa","grupo":"Rústicas","tipo":"Formação","epoca":"Junho – Julho","obs":"Apenas estrutural","lua":"2ª semana de julho – Lua minguante","mes":7},{"especie":"Maracujá doce","grupo":"Trepadeiras","tipo":"Renovação","epoca":"Agosto","obs":"Alta resposta à poda","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Laranja","grupo":"Citros","tipo":"Limpeza","epoca":"Agosto – Setembro","obs":"1 poda estrutural anual","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Laranja kinkan","grupo":"Citros","tipo":"Leve","epoca":"Agosto","obs":"Sensível a poda forte","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Limão taiti","grupo":"Citros","tipo":"Limpeza","epoca":"Agosto – Setembro","obs":"Vigoroso; evitar excesso de cortes","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Limão siciliano","grupo":"Citros","tipo":"Limpeza","epoca":"Agosto – Setembro","obs":"Evitar cortes grandes","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Limão cravo","grupo":"Citros","tipo":"Limpeza","epoca":"Agosto – Setembro","obs":"Muito rústico","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Limão caviar","grupo":"Citros","tipo":"Limpeza mínima","epoca":"Agosto – Setembro","obs":"Apenas sanitária","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Mexerica","grupo":"Citros","tipo":"Limpeza","epoca":"Agosto – Setembro","obs":"Copa bem ventilada","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Cambuci","grupo":"Myrtaceae nativas","tipo":"Formação / limpeza","epoca":"Agosto – Setembro","obs":"Evitar poda severa","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Uvaia","grupo":"Myrtaceae nativas","tipo":"Leve / condução","epoca":"Agosto – Setembro","obs":"Boa resposta em SAF","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Goiaba","grupo":"Myrtaceae nativas","tipo":"Frutificação","epoca":"Agosto – Setembro","obs":"Produz em ramos novos","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Pitanga","grupo":"Myrtaceae nativas","tipo":"Limpeza","epoca":"Agosto – Setembro","obs":"Responder melhor a poda leve","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Pitangatuba","grupo":"Myrtaceae nativas","tipo":"Limpeza","epoca":"Agosto – Setembro","obs":"Alta adaptação ao clima úmido","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Atemoia","grupo":"Tropicais","tipo":"Frutificação","epoca":"Agosto","obs":"Boa resposta à poda","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Araticum","grupo":"Tropicais","tipo":"Leve","epoca":"Agosto","obs":"Evitar podas fortes","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Abacateiro","grupo":"Tropicais lenhosas","tipo":"Limpeza","epoca":"Agosto","obs":"Nunca poda severa","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Jujuba indiana","grupo":"Rústicas","tipo":"Leve","epoca":"Agosto","obs":"Muito resistente","lua":"3ª semana de agosto – Lua minguante","mes":8},{"especie":"Nêspera","grupo":"Rosáceas","tipo":"Pós-colheita","epoca":"Setembro","obs":"Não podar no inverno","lua":"4ª semana de setembro – Lua minguante","mes":9},{"especie":"Jaboticaba","grupo":"Myrtaceae nativas","tipo":"Limpeza","epoca":"Setembro – Outubro","obs":"Manter copa ventilada","lua":"4ª semana de setembro – Lua minguante","mes":9},{"especie":"Fruta-do-leite","grupo":"Myrtaceae nativas","tipo":"Leve","epoca":"Setembro","obs":"Baixa exigência","lua":"4ª semana de setembro – Lua minguante","mes":9},{"especie":"Fruta-do-sabiá","grupo":"Myrtaceae nativas","tipo":"Leve","epoca":"Setembro","obs":"Indicada para sistemas biodiversos","lua":"4ª semana de setembro – Lua minguante","mes":9},{"especie":"Jambeiro","grupo":"Myrtaceae nativas","tipo":"Limpeza","epoca":"Setembro","obs":"Evitar excesso de poda","lua":"4ª semana de setembro – Lua minguante","mes":9},{"especie":"Acerola","grupo":"Tropicais","tipo":"Renovação leve","epoca":"Setembro – Março","obs":"Produção contínua","lua":"Lua minguante entre setembro e março","mes":9},{"especie":"Graviola","grupo":"Tropicais","tipo":"Condução","epoca":"Setembro – Outubro","obs":"Sensível a frio","lua":"4ª semana de setembro – Lua minguante","mes":9},{"especie":"Carambola","grupo":"Tropicais","tipo":"Limpeza","epoca":"Setembro","obs":"Sensível a excesso de poda","lua":"4ª semana de setembro – Lua minguante","mes":9},{"especie":"Abiu","grupo":"Tropicais lenhosas","tipo":"Limpeza","epoca":"Setembro","obs":"Sensível a excesso de poda","lua":"4ª semana de setembro – Lua minguante","mes":9},{"especie":"Sapota branca","grupo":"Tropicais lenhosas","tipo":"Leve","epoca":"Setembro","obs":"Crescimento lento","lua":"4ª semana de setembro – Lua minguante","mes":9},{"especie":"Kiwi","grupo":"Trepadeiras","tipo":"Produção","epoca":"Julho","obs":"Precisa de tutor/pérgola; é dioica (exige planta macho p/ polinizar)","lua":"2ª semana de julho – Lua minguante","mes":7}];
+const ADUBA=[{"mes":1,"mesLbl":"Jan","obj":"Sustentar crescimento","tipo":"Cobertura morta + biofertilizante líquido (opcional)","como":"Biofertilizante diluído (1:10) no solo úmido","grupos":"E, F","campo":"Evitar adubos sólidos (chuva intensa)","insumos":"❌ Nenhum","obs":"Risco alto de lixiviação"},{"mes":2,"mesLbl":"Fev","obj":"Manter vigor e equilíbrio","tipo":"Biofertilizante líquido + cinza vegetal leve","como":"Aplicar em dias sem chuva forte","grupos":"B, E, F","campo":"Cinza apenas se solo bem coberto","insumos":"❌ Nenhum","obs":"Solo em excesso de água"},{"mes":3,"mesLbl":"Mar","obj":"Adubação estrutural do ano","tipo":"Composto orgânico + esterco curtido + bokashi","como":"Em coroamento largo, sem revolver","grupos":"Todos","campo":"Momento-chave de fertilidade","insumos":"❌ Evitar","obs":"Priorizar orgânicos"},{"mes":4,"mesLbl":"Abr","obj":"Sustentar solo e microbiota","tipo":"Composto leve + poda com devolução","como":"Biomassa direto no chão","grupos":"A, D","campo":"Aproveitar restos de poda","insumos":"❌ Nenhum","obs":"Transição"},{"mes":5,"mesLbl":"Mai","obj":"Preparar para inverno úmido","tipo":"Pó de rocha (remineralização)","como":"Espalhar e cobrir com palhada","grupos":"A, B, F","campo":"Ação lenta, estrutural","insumos":"Calcário (se necessário)","obs":"Correção estrutural"},{"mes":6,"mesLbl":"Jun","obj":"Manutenção","tipo":"Apenas cobertura morta","como":"Reforçar palhada","grupos":"Todos","campo":"Não estimular brotação","insumos":"Calcário / pó de rocha","obs":"Com solo coberto"},{"mes":7,"mesLbl":"Jul","obj":"Repouso fisiológico","tipo":"Nenhuma adubação","como":"—","grupos":"Todos","campo":"Observação do sistema","insumos":"Calcário (última janela)","obs":"Planejamento"},{"mes":8,"mesLbl":"Ago","obj":"Preparar brotação","tipo":"Composto leve + bokashi (½ dose)","como":"Aplicar antes de chuvas regulares","grupos":"B, C","campo":"Ativar microbiologia","insumos":"NPK leve / uréia (excepcional)","obs":"Preparação da brotação"},{"mes":9,"mesLbl":"Set","obj":"Adubação de floração","tipo":"Composto + esterco + cinza + biofertilizante","como":"Aplicação fracionada","grupos":"Todos","campo":"Fundamental p/ frutificação","insumos":"NPK leve / K","obs":"Floração"},{"mes":10,"mesLbl":"Out","obj":"Sustentar frutificação inicial","tipo":"Biofertilizante líquido + cobertura","como":"Via solo","grupos":"B, D, A","campo":"Evitar excesso de N","insumos":"❌ Evitar","obs":"Frutificação inicial"},{"mes":11,"mesLbl":"Nov","obj":"Enchimento de frutos","tipo":"Cinza vegetal + composto leve","como":"Ao redor da projeção da copa","grupos":"B, D, A","campo":"Potássio é chave","insumos":"K (pontual)","obs":"Enchimento de frutos"},{"mes":12,"mesLbl":"Dez","obj":"Proteção do solo","tipo":"Cobertura morta intensa","como":"Palhada grossa","grupos":"Todos","campo":"Evitar adubação pesada","insumos":"❌ Nenhum","obs":"Proteção do solo"}];
+const PLANT=[{"especie":"Acelga","epoca":"Outono e inverno","estacao":"Amena","sol":"Sol pleno","categoria":"folhosas"},{"especie":"Agrião","epoca":"Ano todo","estacao":"Todas","sol":"Meia-sombra","categoria":"folhosas"},{"especie":"Alface","epoca":"Ano todo (evitar pico de chuva)","estacao":"Todas","sol":"Meia-sombra","categoria":"folhosas"},{"especie":"Capuchinha","epoca":"Outono e primavera","estacao":"Amenas","sol":"Sol pleno","categoria":"folhosas"},{"especie":"Chicória","epoca":"Outono e inverno","estacao":"Amena","sol":"Sol pleno","categoria":"folhosas"},{"especie":"Endívia","epoca":"Outono","estacao":"Amena","sol":"Sol pleno","categoria":"folhosas"},{"especie":"Escarola","epoca":"Outono e inverno","estacao":"Amena","sol":"Sol pleno","categoria":"folhosas"},{"especie":"Espinafre","epoca":"Outono e inverno","estacao":"Amena","sol":"Meia-sombra","categoria":"folhosas"},{"especie":"Mostarda","epoca":"Outono e inverno","estacao":"Amena","sol":"Sol pleno","categoria":"folhosas"},{"especie":"Ora-pro-nóbis","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"folhosas"},{"especie":"Peixinho-da-horta","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"folhosas"},{"especie":"Rúcula","epoca":"Outono e inverno","estacao":"Amena","sol":"Sol pleno","categoria":"folhosas"},{"especie":"Taioba","epoca":"Primavera e verão","estacao":"Quente","sol":"Meia-sombra","categoria":"folhosas"},{"especie":"Abóbora","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Abobrinha","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Batata-doce","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Berinjela","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Beterraba","epoca":"Outono e inverno","estacao":"Amena","sol":"Sol pleno","categoria":"frutos"},{"especie":"Cará","epoca":"Primavera","estacao":"Quente","sol":"Meia-sombra","categoria":"frutos"},{"especie":"Cenoura","epoca":"Outono e inverno","estacao":"Amena","sol":"Sol pleno","categoria":"frutos"},{"especie":"Chuchu","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Ervilha torta","epoca":"Outono","estacao":"Amena","sol":"Sol pleno","categoria":"frutos"},{"especie":"Feijão-vagem","epoca":"Primavera e verão","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Inhame","epoca":"Primavera","estacao":"Quente","sol":"Meia-sombra","categoria":"frutos"},{"especie":"Mandioca","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Mandioquinha","epoca":"Outono","estacao":"Amena","sol":"Sol pleno","categoria":"frutos"},{"especie":"Milho verde","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Pepino","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Pimentão","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Quiabo","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Rabanete","epoca":"Ano todo","estacao":"Todas","sol":"Sol pleno","categoria":"frutos"},{"especie":"Tomate cereja","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno (bem ventilado)","categoria":"frutos"},{"especie":"Tomate italiano","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"frutos"},{"especie":"Alecrim","epoca":"Outono","estacao":"Mais seco","sol":"Sol pleno","categoria":"ervas"},{"especie":"Alfavaca-cravo","epoca":"Primavera","estacao":"Quente","sol":"Sol pleno","categoria":"ervas"},{"especie":"Alho","epoca":"Outono","estacao":"Amena","sol":"Sol pleno","categoria":"ervas"},{"especie":"Alho-poró","epoca":"Outono","estacao":"Amena","sol":"Sol pleno","categoria":"ervas"},{"especie":"Capim-limão","epoca":"Primavera e verão","estacao":"Quente","sol":"Sol pleno","categoria":"ervas"},{"especie":"Cebolinha","epoca":"Ano todo","estacao":"Todas","sol":"Sol pleno a meia-sombra","categoria":"ervas"},{"especie":"Coentro","epoca":"Outono e inverno","estacao":"Mais seco","sol":"Sol pleno","categoria":"ervas"},{"especie":"Cúrcuma","epoca":"Primavera","estacao":"Quente","sol":"Meia-sombra","categoria":"ervas"},{"especie":"Erva-cidreira (Melissa)","epoca":"Outono e primavera","estacao":"Amenas","sol":"Meia-sombra","categoria":"ervas"},{"especie":"Funcho / erva-doce","epoca":"Outono","estacao":"Amena","sol":"Sol pleno","categoria":"ervas"},{"especie":"Gengibre","epoca":"Primavera","estacao":"Quente","sol":"Meia-sombra","categoria":"ervas"},{"especie":"Hortelã","epoca":"Ano todo","estacao":"Todas","sol":"Meia-sombra","categoria":"ervas"},{"especie":"Manjericão","epoca":"Primavera e verão","estacao":"Quente","sol":"Sol pleno","categoria":"ervas"},{"especie":"Manjerona","epoca":"Outono","estacao":"Amena","sol":"Meia-sombra","categoria":"ervas"},{"especie":"Orégano","epoca":"Outono e primavera","estacao":"Amenas","sol":"Sol pleno","categoria":"ervas"},{"especie":"Salsinha","epoca":"Outono e primavera","estacao":"Amenas","sol":"Meia-sombra","categoria":"ervas"},{"especie":"Sálvia","epoca":"Outono","estacao":"Mais seco","sol":"Sol pleno","categoria":"ervas"},{"especie":"Tomilho","epoca":"Outono","estacao":"Mais seco","sol":"Sol pleno","categoria":"ervas"}];
+const GRUPOS=[["Grupo A – Myrtaceae nativas","responder melhor a matéria orgânica contínua do que adubação concentrada"],["Grupo B – Citros","preferem adubação fracionada (março, setembro, novembro)"],["Grupo C – Rosáceas","solo bem nutrido antes da brotação (agosto/setembro)"],["Grupo D – Trepadeiras","adubação associada à poda"],["Grupo E – Anonáceas","sensíveis a excesso; foco em solo vivo"],["Grupo F – Tropicais grandes","estabilidade e cobertura constante"],["Grupo G – Especiais","manejo caso a caso (ex: mirtilo com solo ácido)"]];
+const LUA=[["Lua Minguante","podas de frutificação, contenção e limpeza"],["Lua Nova","evitar podas estruturais (estimula brotação)"],["Lua Cheia","evitar (alta pressão de seiva)"],["Lua Crescente","apenas podas verdes muito leves"]];
+const PRINCIPLES=["Solo sempre coberto","Uma poda estrutural por ano","Frutificam em ramos específicos (normalmente novos)","Poda define produção","Poda de condução e frutificação","Poda apenas para: formação e limpeza","Alta resiliência","Poda leve, nunca severa","Eventuais podas leves corretivas","Poda de frutificação obrigatória","Exigem condução","Evitar podas fora de época","Nunca podas severas","Resposta variável à poda","Preferem poda de limpeza e condução","Evitar cortes grandes","Copa aberta = menos fungos","Boa insolação e drenagem","Sensíveis a frio excessivo","Preferem estabilidade","Observação é chave","Excelente resposta em SAF","Atenção máxima a fungos (gomose)","Exigem mais técnica","Mirtilo exige solo ácido"];
+
+/* ---------- tabs ---------- */
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active"); document.getElementById(t.dataset.tab).classList.add("active");
+});
+
+/* ---------- poda ---------- */
+let podaSort={k:"mes",dir:1};
+function renderPoda(){
+  const q=$("#podaSearch").value.toLowerCase().trim(),fm=$("#podaMes").value,fg=$("#podaGrupo").value,ft=$("#podaTipo").value;
+  let rows=PODA.filter(r=>{
+    if(fm&&MESES[r.mes]!==fm)return false;
+    if(fg&&r.grupo!==fg)return false;
+    if(ft&&r.tipo!==ft)return false;
+    if(q&&!(r.especie+r.grupo+r.tipo+r.epoca+r.obs+r.lua).toLowerCase().includes(q))return false;
+    return true;
+  });
+  rows.sort((a,b)=>podaSort.k==="mes"?(a.mes-b.mes)*podaSort.dir:String(a[podaSort.k]).localeCompare(String(b[podaSort.k]),"pt")*podaSort.dir);
+  $("#podaTable tbody").innerHTML=rows.map(r=>`<tr class="${r.mes===NOW_MONTH?'row-now':''}">
+    <td><b>${esc(r.especie)}</b></td><td>${esc(r.grupo)}</td><td>${esc(r.tipo)}</td>
+    <td>${esc(r.epoca)}</td><td>${MESES[r.mes]||""}</td>
+    <td><span class="pill moonpill">🌙 ${esc(r.lua)}</span></td><td>${esc(r.obs)}</td></tr>`).join("")
+    ||`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Nenhum resultado.</td></tr>`;
+  $("#podaCount").textContent=rows.length+" de "+PODA.length+" espécies";
+}
+/* ---------- plantio ---------- */
+let plantSort={k:"especie",dir:1};
+function renderPlant(){
+  const q=$("#plantSearch").value.toLowerCase().trim(),fc=$("#plantGrupo").value,fe=$("#plantEstacao").value,fs=$("#plantSol").value;
+  let rows=PLANT.filter(r=>{
+    if(fc&&r.categoria!==fc)return false;
+    if(fe&&r.estacao!==fe)return false;
+    if(fs&&r.sol!==fs)return false;
+    if(q&&!r.especie.toLowerCase().includes(q)&&!r.epoca.toLowerCase().includes(q))return false;
+    return true;
+  });
+  rows.sort((a,b)=>String(a[plantSort.k]).localeCompare(String(b[plantSort.k]),"pt")*plantSort.dir);
+  $("#plantTable tbody").innerHTML=rows.map(r=>`<tr><td><b>${esc(r.especie)}</b></td><td>${esc(CATLABEL[r.categoria]||r.categoria)}</td>
+    <td>${esc(r.epoca)}</td><td>${esc(r.estacao)}</td><td>${esc(r.sol)}</td></tr>`).join("")
+    ||`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Nenhum resultado.</td></tr>`;
+  $("#plantCount").textContent=rows.length+" de "+PLANT.length+" espécies";
+}
+function renderAduba(){
+  $("#adubaGrid").innerHTML=ADUBA.map(m=>`<div class="mcard ${m.mes===NOW_MONTH?'now':''}">
+    <h3>${esc(m.mes>0?MESES_FULL[m.mes]:m.mesLbl)} ${m.mes===NOW_MONTH?'<span class="badge-now">agora</span>':''}</h3>
+    <div class="obj">${esc(m.obj)}</div>
+    <dl><dt>Tipo de adubação</dt><dd>${esc(m.tipo)}</dd>
+    <dt>Como aplicar</dt><dd>${esc(m.como)}</dd>
+    <dt>Grupos prioritários</dt><dd>${esc(m.grupos)}</dd>
+    <dt>Insumos minerais permitidos</dt><dd>${esc(m.insumos)}</dd>
+    <dt>No campo</dt><dd>${esc(m.campo)}</dd></dl></div>`).join("");
+}
+function renderManejo(){
+  $("#gruposBox").innerHTML=GRUPOS.map(g=>`<div class="note"><h4>${esc(g[0])}</h4><p>${esc(g[1])}</p></div>`).join("");
+  $("#moonKey").innerHTML=LUA.map(l=>`<div class="mk"><b>🌙 ${esc(l[0])}</b><br>${esc(l[1])}</div>`).join("");
+  $("#principlesBox").innerHTML=PRINCIPLES.map(p=>`<li>${esc(p)}</li>`).join("");
+}
+
+/* ---------- wire filters ---------- */
+["#podaSearch","#podaMes","#podaGrupo","#podaTipo"].forEach(s=>$(s).addEventListener("input",renderPoda));
+$("#podaTable thead").addEventListener("click",e=>{const th=e.target.closest("th");if(!th||!th.dataset.k)return;
+  if(podaSort.k===th.dataset.k)podaSort.dir*=-1;else{podaSort.k=th.dataset.k;podaSort.dir=1;}renderPoda();});
+["#plantSearch","#plantGrupo","#plantEstacao","#plantSol"].forEach(s=>$(s).addEventListener("input",renderPlant));
+$("#plantTable thead").addEventListener("click",e=>{const th=e.target.closest("th");if(!th||!th.dataset.k)return;
+  if(plantSort.k===th.dataset.k)plantSort.dir*=-1;else{plantSort.k=th.dataset.k;plantSort.dir=1;}renderPlant();});
+
+/* ---------- init (static) ---------- */
+$("#todayLabel").textContent="Mês atual: "+MESES_FULL[NOW_MONTH];
+fillSelect($("#podaMes"),[...new Set(PODA.map(r=>r.mes))].filter(Boolean).sort((a,b)=>a-b).map(m=>MESES[m]),"Todos os meses");
+fillSelect($("#podaGrupo"),uniq(PODA.map(r=>r.grupo)),"Todos os grupos");
+fillSelect($("#podaTipo"),uniq(PODA.map(r=>r.tipo)),"Todos os tipos de poda");
+fillSelect($("#plantEstacao"),uniq(PLANT.map(r=>r.estacao)),"Todas as estações");
+fillSelect($("#plantSol"),uniq(PLANT.map(r=>r.sol)),"Toda exigência de sol");
+renderPoda();renderPlant();renderAduba();renderManejo();
+
+</script>
+</body>
+</html>
